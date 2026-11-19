@@ -1,0 +1,10 @@
+server.port: 9003
+spring:
+  application.name: mall-cart-service
+  cloud.nacos.discovery.server-addr: ${NACOS_ADDR:localhost:8848}
+  data.redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:mall123456}
+    timeout: 3s
+management.endpoints.web.exposure.include: health,info

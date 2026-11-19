@@ -1,0 +1,17 @@
+server.port: 9006
+spring:
+ application.name: mall-payment-service
+ cloud.nacos.discovery.server-addr: ${NACOS_ADDR:localhost:8848}
+ datasource:
+  url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/mall_payment?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+  username: ${MYSQL_USER:root}
+  password: ${MYSQL_PASSWORD:mall123456}
+ sql.init.mode: always
+ rabbitmq:
+  host: ${RABBIT_HOST:localhost}
+  port: ${RABBIT_PORT:5672}
+  username: ${RABBIT_USER:mall}
+  password: ${RABBIT_PASSWORD:mall123456}
+  publisher-confirm-type: correlated
+mybatis-plus.configuration.map-underscore-to-camel-case: true
+management.endpoints.web.exposure.include: health,info

@@ -1,0 +1,36 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: mall-gateway
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_ADDR:localhost:8848}
+    sentinel:
+      transport:
+        dashboard: ${SENTINEL_ADDR:localhost:8858}
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowed-origin-patterns: "*"
+            allowed-methods: "*"
+            allowed-headers: "*"
+      routes:
+        - { id: auth, uri: lb://mall-auth-service, predicates: [ Path=/api/auth/** ] }
+        - { id: users, uri: lb://mall-user-service, predicates: [ Path=/api/users/** ] }
+        - { id: products, uri: lb://mall-product-service, predicates: [ "Path=/api/products/**,/api/categories/**" ] }
+        - { id: carts, uri: lb://mall-cart-service, predicates: [ Path=/api/cart/** ] }
+        - { id: orders, uri: lb://mall-order-service, predicates: [ Path=/api/orders/** ] }
+        - { id: payments, uri: lb://mall-payment-service, predicates: [ Path=/api/payments/** ] }
+        - { id: search, uri: lb://mall-search-service, predicates: [ Path=/api/search/** ] }
+        - { id: seckill, uri: lb://mall-seckill-service, predicates: [ Path=/api/seckill/** ] }
+        - { id: seckill-admin, uri: lb://mall-seckill-service, predicates: [ Path=/api/admin/seckill/** ] }
+        - { id: admin, uri: lb://mall-admin-service, predicates: [ Path=/api/admin/** ] }
+mall:
+  jwt:
+    secret: ${JWT_SECRET:bWFsbC1jbG91ZC1kZW1vLXNlY3JldC1rZXktbXVzdC1iZS1sb25nLWVub3VnaA==}
+    expiration-seconds: 7200
+management:
+  endpoints.web.exposure.include: health,info,gateway

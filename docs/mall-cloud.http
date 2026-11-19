@@ -1,0 +1,104 @@
+@baseUrl = http://localhost:8080
+@token = paste-user-token-here
+@adminToken = paste-admin-token-here
+@orderNo = paste-order-no-here
+@paymentNo = paste-payment-no-here
+
+### 1. 注册普通用户
+POST {{baseUrl}}/api/users/register
+Content-Type: application/json
+
+{
+  "username": "demo_user",
+  "password": "Demo@123456",
+  "phone": "13900000001",
+  "email": "demo@mall.local"
+}
+
+### 2. 登录普通用户，将 data.accessToken 填到 token 变量
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "demo_user",
+  "password": "Demo@123456"
+}
+
+### 3. 查询商品（公开接口）
+GET {{baseUrl}}/api/products?page=1&size=20
+
+### 4. 查询分类（公开接口）
+GET {{baseUrl}}/api/categories
+
+### 5. 搜索商品（索引首次同步最多等待约 10 秒）
+GET {{baseUrl}}/api/search/products?keyword=华为&page=1&size=10
+
+### 6. 加入购物车
+POST {{baseUrl}}/api/cart/items
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "productId": 1001,
+  "quantity": 2
+}
+
+### 7. 查询购物车
+GET {{baseUrl}}/api/cart
+Authorization: Bearer {{token}}
+
+### 8. 创建订单。重复发送同一个 requestNo 应返回同一个订单
+POST {{baseUrl}}/api/orders
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "requestNo": "demo-order-0001",
+  "receiverName": "张三",
+  "receiverPhone": "13900000001",
+  "receiverAddress": "上海市浦东新区演示路 1 号"
+}
+
+### 9. 模拟支付，将 data.paymentNo 填到 paymentNo 变量
+POST {{baseUrl}}/api/payments/orders/{{orderNo}}
+Authorization: Bearer {{token}}
+
+### 10. 查询订单，Outbox 消息消费后状态应为 PAID
+GET {{baseUrl}}/api/orders/{{orderNo}}
+Authorization: Bearer {{token}}
+
+### 11. 管理员登录，将 data.accessToken 填到 adminToken
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "Admin@123456"
+}
+
+### 12. 管理员查询订单
+GET {{baseUrl}}/api/admin/orders?page=1&size=20
+Authorization: Bearer {{adminToken}}
+
+### 13. 管理员发货
+POST {{baseUrl}}/api/admin/orders/{{orderNo}}/ship
+Authorization: Bearer {{adminToken}}
+
+### 14. 用户确认收货
+POST {{baseUrl}}/api/orders/{{orderNo}}/complete
+Authorization: Bearer {{token}}
+
+### 15. 创建秒杀活动，时间按实际测试时间修改
+POST {{baseUrl}}/api/admin/seckill/activities
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "productId": 1001,
+  "activityName": "晚八点手机秒杀",
+  "seckillPrice": 4999.00,
+  "totalStock": 100,
+  "limitPerUser": 1,
+  "startTime": "2026-07-19T20:00:00",
+  "endTime": "2026-07-19T23:59:59"
+}

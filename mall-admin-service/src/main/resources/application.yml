@@ -1,0 +1,5 @@
+server.port: 9009
+spring:
+ application.name: mall-admin-service
+ cloud.nacos.discovery.server-addr: ${NACOS_ADDR:localhost:8848}
+management.endpoints.web.exposure.include: health,info

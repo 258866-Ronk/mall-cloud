@@ -1,0 +1,14 @@
+server.port: 9007
+spring:
+ application.name: mall-search-service
+ cloud.nacos.discovery.server-addr: ${NACOS_ADDR:localhost:8848}
+ elasticsearch.uris: ${ELASTICSEARCH_URIS:http://localhost:9200}
+ rabbitmq:
+  host: ${RABBIT_HOST:localhost}
+  port: ${RABBIT_PORT:5672}
+  username: ${RABBIT_USER:mall}
+  password: ${RABBIT_PASSWORD:mall123456}
+  listener.simple:
+   retry.enabled: true
+   retry.max-attempts: 5
+management.endpoints.web.exposure.include: health,info

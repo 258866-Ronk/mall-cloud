@@ -1,0 +1,7 @@
+**/target
+work
+outputs
+.git
+.idea
+*.iml
+*.log

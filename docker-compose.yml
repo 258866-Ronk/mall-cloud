@@ -1,0 +1,108 @@
+name: mall-cloud
+
+x-common-environment: &common-environment
+  NACOS_ADDR: nacos:8848
+  MYSQL_HOST: mysql
+  MYSQL_PASSWORD: mall123456
+  REDIS_HOST: redis
+  REDIS_PASSWORD: mall123456
+  RABBIT_HOST: rabbitmq
+  RABBIT_USER: mall
+  RABBIT_PASSWORD: mall123456
+  ELASTICSEARCH_URIS: http://elasticsearch:9200
+  JWT_SECRET: bWFsbC1jbG91ZC1kZW1vLXNlY3JldC1rZXktbXVzdC1iZS1sb25nLWVub3VnaA==
+
+x-service-defaults: &service-defaults
+  restart: unless-stopped
+  environment: *common-environment
+  depends_on:
+    mysql: { condition: service_healthy }
+    redis: { condition: service_healthy }
+    rabbitmq: { condition: service_healthy }
+    nacos: { condition: service_healthy }
+
+services:
+  mysql:
+    image: mysql:8.0.39
+    environment: { MYSQL_ROOT_PASSWORD: mall123456, TZ: Asia/Shanghai }
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    ports: ["3306:3306"]
+    volumes: ["mysql-data:/var/lib/mysql", "./docker/mysql/init:/docker-entrypoint-initdb.d:ro"]
+    healthcheck: { test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-pmall123456"], interval: 10s, timeout: 5s, retries: 20 }
+  redis:
+    image: redis:7.2-alpine
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "mall123456"]
+    ports: ["6379:6379"]
+    volumes: ["redis-data:/data"]
+    healthcheck: { test: ["CMD", "redis-cli", "-a", "mall123456", "ping"], interval: 10s, timeout: 5s, retries: 20 }
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    environment: { RABBITMQ_DEFAULT_USER: mall, RABBITMQ_DEFAULT_PASS: mall123456 }
+    ports: ["5672:5672", "15672:15672"]
+    volumes: ["rabbit-data:/var/lib/rabbitmq"]
+    healthcheck: { test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"], interval: 10s, timeout: 5s, retries: 20 }
+  nacos:
+    image: nacos/nacos-server:v2.4.3
+    environment: { MODE: standalone, NACOS_AUTH_ENABLE: "false", JVM_XMS: 256m, JVM_XMX: 512m, JVM_XMN: 128m }
+    ports: ["8848:8848", "9848:9848"]
+    healthcheck: { test: ["CMD-SHELL", "curl -fs http://localhost:8848/nacos/v1/console/health/readiness || exit 1"], interval: 15s, timeout: 5s, retries: 30 }
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.14.3
+    environment: { discovery.type: single-node, xpack.security.enabled: "false", ES_JAVA_OPTS: "-Xms512m -Xmx512m" }
+    ports: ["9200:9200"]
+    volumes: ["es-data:/usr/share/elasticsearch/data"]
+    healthcheck: { test: ["CMD-SHELL", "curl -fs http://localhost:9200/_cluster/health || exit 1"], interval: 15s, timeout: 5s, retries: 30 }
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.14.3
+    environment: { ELASTICSEARCH_HOSTS: "http://elasticsearch:9200" }
+    ports: ["5601:5601"]
+    depends_on: { elasticsearch: { condition: service_healthy } }
+  seata:
+    image: seataio/seata-server:2.0.0
+    environment: { SEATA_IP: seata, SEATA_PORT: 8091, STORE_MODE: file }
+    ports: ["8091:8091", "7091:7091"]
+
+  user-service:
+    <<: *service-defaults
+    build: { context: ., args: { SERVICE: mall-user-service } }
+  auth-service:
+    <<: *service-defaults
+    build: { context: ., args: { SERVICE: mall-auth-service } }
+  product-service:
+    <<: *service-defaults
+    build: { context: ., args: { SERVICE: mall-product-service } }
+  cart-service:
+    <<: *service-defaults
+    build: { context: ., args: { SERVICE: mall-cart-service } }
+  stock-service:
+    <<: *service-defaults
+    build: { context: ., args: { SERVICE: mall-stock-service } }
+  order-service:
+    <<: *service-defaults
+    build: { context: ., args: { SERVICE: mall-order-service } }
+  payment-service:
+    <<: *service-defaults
+    build: { context: ., args: { SERVICE: mall-payment-service } }
+  search-service:
+    <<: *service-defaults
+    build: { context: ., args: { SERVICE: mall-search-service } }
+    depends_on:
+      rabbitmq: { condition: service_healthy }
+      nacos: { condition: service_healthy }
+      elasticsearch: { condition: service_healthy }
+  seckill-service:
+    <<: *service-defaults
+    build: { context: ., args: { SERVICE: mall-seckill-service } }
+  admin-service:
+    <<: *service-defaults
+    build: { context: ., args: { SERVICE: mall-admin-service } }
+  gateway:
+    <<: *service-defaults
+    build: { context: ., args: { SERVICE: mall-gateway } }
+    ports: ["8080:8080"]
+
+volumes:
+  mysql-data:
+  redis-data:
+  rabbit-data:
+  es-data:

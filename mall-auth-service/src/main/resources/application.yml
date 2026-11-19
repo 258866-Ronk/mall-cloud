@@ -1,0 +1,8 @@
+server.port: 9000
+spring:
+  application.name: mall-auth-service
+  cloud.nacos.discovery.server-addr: ${NACOS_ADDR:localhost:8848}
+mall.jwt:
+  secret: ${JWT_SECRET:bWFsbC1jbG91ZC1kZW1vLXNlY3JldC1rZXktbXVzdC1iZS1sb25nLWVub3VnaA==}
+  expiration-seconds: 7200
+management.endpoints.web.exposure.include: health,info
