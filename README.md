@@ -303,7 +303,7 @@ MySQL 容器首次启动时创建：`mall_user`、`mall_product`、`mall_stock`�
 ./scripts/build.ps1
 ```
 
-## 12. 面试讲解重点
+## 12. 关键设计决策速览
 
 - 为什么购物车适合 Redis，但下单不能信任 Redis 旧价格；
 - 为什么库存扣减必须使用带条件的原子 SQL；
